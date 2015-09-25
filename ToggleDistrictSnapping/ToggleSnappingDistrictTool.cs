@@ -39,6 +39,12 @@ namespace ToggleDistrictSnapping
 
         public CursorInfo m_genericSpecializationCursor;
 
+        public CursorInfo m_leisureSpecializationCursor;
+
+        public CursorInfo m_touristSpecializationCursor;
+
+        public CursorInfo m_genericCommercialSpecializationCursor;
+
         private byte m_district;
 
         private Vector3 m_mousePosition;

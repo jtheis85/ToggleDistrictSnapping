@@ -12,11 +12,10 @@ namespace ToggleDistrictSnapping
     {
         static bool hooked = false;
         static private Dictionary<MethodInfo, RedirectCallsState> redirects = new Dictionary<MethodInfo, RedirectCallsState>();
-        //public static bool loadingLevel = false;
 
         public override void OnCreated(ILoading loading)
         {
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "[TestCSMod] Loader - OnCreated");
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "[ToggleDistrictSnapping] Loader - OnCreated");
             base.OnCreated(loading);
 
             if (hooked)
