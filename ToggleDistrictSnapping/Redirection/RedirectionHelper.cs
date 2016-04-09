@@ -20,10 +20,10 @@ THE SOFTWARE.
 
 using System;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
-namespace ToggleDistrictSnapping
+namespace ToggleDistrictSnapping.Redirection
 {
+
     public struct RedirectCallsState
     {
         public byte a, b, c, d, e;

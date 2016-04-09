@@ -1,11 +1,15 @@
-﻿using ColossalFramework;
+﻿using System.Collections.Generic;
+using ColossalFramework;
 using ColossalFramework.Math;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using ToggleDistrictSnapping.OptionsFramework;
+using ToggleDistrictSnapping.Redirection;
 using UnityEngine;
 
 namespace ToggleDistrictSnapping
 {
+    [TargetType(typeof(DistrictTool))]
     public class ToggleSnappingDistrictTool : DistrictTool
     {
         private static FieldInfo m_district;
@@ -31,101 +35,40 @@ namespace ToggleDistrictSnapping
             m_errors.SetValue(this, value);
         }
 
-        private static bool _deployed;
+        private static Dictionary<MethodInfo, RedirectCallsState> _redirects;
 
-        #region Get Redirects
-        // Simulation Step
-        private static readonly MethodInfo fromSimulationStep = typeof(DistrictTool)
-            .GetMethod("SimulationStep", BindingFlags.Public | BindingFlags.Instance);
-        private static readonly MethodInfo toSimulationStep = typeof(ToggleSnappingDistrictTool)
-            .GetMethod("SimulationStep", BindingFlags.Public | BindingFlags.Instance);
-        private static RedirectCallsState _simulationStepState;
-
-        // Apply Brush
-        private static readonly MethodInfo fromApplyBrush = typeof(ToggleSnappingDistrictTool)
-            .GetMethod("ApplyBrush", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static readonly MethodInfo toApplyBrush = typeof(DistrictTool)
-            .GetMethod("ApplyBrush", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static RedirectCallsState _applyBrushState;
-
-        // Force District Alpha
-        private static readonly MethodInfo fromForceDistrictAlpha = typeof(ToggleSnappingDistrictTool)
-            .GetMethod("ForceDistrictAlpha", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static readonly MethodInfo toForceDistrictAlpha = typeof(DistrictTool)
-            .GetMethod("ForceDistrictAlpha", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static RedirectCallsState _forceDistrictAlphaState;
-
-        // Set District Alpha
-        private static readonly MethodInfo fromSetDistrictAlpha = typeof(ToggleSnappingDistrictTool)
-            .GetMethod("SetDistrictAlpha", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static readonly MethodInfo toSetDistrictAlpha = typeof(DistrictTool)
-            .GetMethod("SetDistrictAlpha", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static RedirectCallsState _setDistrictAlphaState;
-
-        // Normalize
-        private static readonly MethodInfo fromNormalize = typeof(ToggleSnappingDistrictTool)
-            .GetMethod("Normalize", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static readonly MethodInfo toNormalize = typeof(DistrictTool)
-            .GetMethod("Normalize", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static RedirectCallsState _normalizeState;
-
-        // Check Neighbour Cells
-        private static readonly MethodInfo fromCheckNeighbourCells = typeof(ToggleSnappingDistrictTool)
-            .GetMethod("CheckNeighbourCells", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static readonly MethodInfo toCheckNeighbourCells = typeof(DistrictTool)
-            .GetMethod("CheckNeighbourCells", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static RedirectCallsState _checkNeighbourCellsState;
-
-        // Get Alpha
-        private static readonly MethodInfo fromGetAlpha = typeof(ToggleSnappingDistrictTool)
-            .GetMethod("SetDistrictAlpha", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static readonly MethodInfo toGetAlpha = typeof(DistrictTool)
-            .GetMethod("SetDistrictAlpha", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static RedirectCallsState _getAlphaState; 
-        #endregion
-
-        public static void Deploy() {
-            if (_deployed)
+        public static void Deploy()
+        {
+            if (_redirects != null)
+            {
                 return;
-
-            #region Deploy Redirects
-            _simulationStepState      = RedirectionHelper.RedirectCalls(fromSimulationStep,      toSimulationStep);
-            _applyBrushState          = RedirectionHelper.RedirectCalls(fromApplyBrush,          toApplyBrush);
-            _forceDistrictAlphaState  = RedirectionHelper.RedirectCalls(fromForceDistrictAlpha,  toForceDistrictAlpha);
-            _setDistrictAlphaState    = RedirectionHelper.RedirectCalls(fromSetDistrictAlpha,    toSetDistrictAlpha);
-            _normalizeState           = RedirectionHelper.RedirectCalls(fromNormalize,           toNormalize);
-            _checkNeighbourCellsState = RedirectionHelper.RedirectCalls(fromCheckNeighbourCells, toCheckNeighbourCells);
-            _getAlphaState            = RedirectionHelper.RedirectCalls(fromGetAlpha,            toGetAlpha);
-            #endregion
-
-            m_district          = typeof(DistrictTool).GetField("m_district", BindingFlags.Instance | BindingFlags.NonPublic);
-            m_mousePosition     = typeof(DistrictTool).GetField("m_mousePosition", BindingFlags.Instance | BindingFlags.NonPublic);
+            }
+            _redirects = RedirectionUtil.RedirectType(typeof(ToggleSnappingDistrictTool));
+            m_district = typeof(DistrictTool).GetField("m_district", BindingFlags.Instance | BindingFlags.NonPublic);
+            m_mousePosition = typeof(DistrictTool).GetField("m_mousePosition", BindingFlags.Instance | BindingFlags.NonPublic);
             m_lastPaintPosition = typeof(DistrictTool).GetField("m_lastPaintPosition", BindingFlags.Instance | BindingFlags.NonPublic);
-            m_mouseRay          = typeof(DistrictTool).GetField("m_mouseRay", BindingFlags.Instance | BindingFlags.NonPublic);
-            m_mouseRayLength    = typeof(DistrictTool).GetField("m_mouseRayLength", BindingFlags.Instance | BindingFlags.NonPublic);
-            m_painting          = typeof(DistrictTool).GetField("m_painting", BindingFlags.Instance | BindingFlags.NonPublic);
-            m_erasing           = typeof(DistrictTool).GetField("m_erasing", BindingFlags.Instance | BindingFlags.NonPublic);
-            m_mouseRayValid     = typeof(DistrictTool).GetField("m_mouseRayValid", BindingFlags.Instance | BindingFlags.NonPublic);
-            m_errors            = typeof(DistrictTool).GetField("m_errors", BindingFlags.Instance | BindingFlags.NonPublic);
+            m_mouseRay = typeof(DistrictTool).GetField("m_mouseRay", BindingFlags.Instance | BindingFlags.NonPublic);
+            m_mouseRayLength = typeof(DistrictTool).GetField("m_mouseRayLength", BindingFlags.Instance | BindingFlags.NonPublic);
+            m_painting = typeof(DistrictTool).GetField("m_painting", BindingFlags.Instance | BindingFlags.NonPublic);
+            m_erasing = typeof(DistrictTool).GetField("m_erasing", BindingFlags.Instance | BindingFlags.NonPublic);
+            m_mouseRayValid = typeof(DistrictTool).GetField("m_mouseRayValid", BindingFlags.Instance | BindingFlags.NonPublic);
+            m_errors = typeof(DistrictTool).GetField("m_errors", BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
-        public static void Revert() {
-            if (!_deployed)
+        public static void Revert()
+        {
+            if (_redirects == null)
+            {
                 return;
-
-            #region Revert Redirects
-            RedirectionHelper.RevertRedirect(fromSimulationStep,      _simulationStepState);
-            RedirectionHelper.RevertRedirect(fromApplyBrush,          _applyBrushState);
-            RedirectionHelper.RevertRedirect(fromForceDistrictAlpha,  _forceDistrictAlphaState);
-            RedirectionHelper.RevertRedirect(fromSetDistrictAlpha,    _setDistrictAlphaState);
-            RedirectionHelper.RevertRedirect(fromNormalize,           _normalizeState);
-            RedirectionHelper.RevertRedirect(fromCheckNeighbourCells, _checkNeighbourCellsState);
-            RedirectionHelper.RevertRedirect(fromGetAlpha,            _getAlphaState); 
-            #endregion
-
-            _deployed = false;
+            }
+            foreach (var redirect in _redirects)
+            {
+                RedirectionHelper.RevertRedirect(redirect.Key, redirect.Value);
+            }
+            _redirects = null;
         }
 
+        [RedirectMethod]
         public override void SimulationStep() {
             var district       = (byte)   m_district      .GetValue(this);
             var painting       = (bool)   m_painting      .GetValue(this);
@@ -142,7 +85,7 @@ namespace ToggleDistrictSnapping
             ToolBase.RaycastOutput raycastOutput;
             if (mouseRayValid && ToolBase.RayCast(input, out raycastOutput)) {
                 //begin mod
-                var swapToggle = (ModInfo.Options & ModOptions.DefaultToNoSnapping) != 0;
+                var swapToggle = OptionsWrapper<Options>.Options.defaultToNoSnapping;
                 if ((swapToggle && Input.GetKey(KeyCode.LeftAlt)) ||
                      (!swapToggle && !Input.GetKey(KeyCode.LeftAlt))) {
                     if (raycastOutput.m_netNode != 0) {
@@ -198,28 +141,33 @@ namespace ToggleDistrictSnapping
 
         #region Dummy Methods
         [MethodImpl(MethodImplOptions.NoInlining)]
+        [RedirectReverse]
         private void ApplyBrush(byte district) {
             Debug.Log($"{district}");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        [RedirectReverse]
         private bool ForceDistrictAlpha(int x, int z, byte district, int min, int max) {
             Debug.Log($"{x}-{z}-{district}-{min}-{max}");
             return false;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        [RedirectReverse]
         private bool SetDistrictAlpha(int x, int z, byte district, int min, int max) {
             Debug.Log($"{x}-{z}-{district}-{min}-{max}");
             return false;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        [RedirectReverse]
         private void Normalize(ref DistrictManager.Cell cell, int ignoreIndex) {
             Debug.Log($"{cell}-{ignoreIndex}");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        [RedirectReverse]
         private void CheckNeighbourCells(int x, int z, byte district, out int min, out int max) {
             min = 0;
             max = 0;
@@ -227,6 +175,7 @@ namespace ToggleDistrictSnapping
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        [RedirectReverse]
         private int GetAlpha(ref DistrictManager.Cell cell, byte district) {
             Debug.Log($"{cell}-{district}");
             return 0;
